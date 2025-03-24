@@ -1,0 +1,33 @@
+name: Build Apptainer SIF
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-sif:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install Apptainer
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential libseccomp-dev pkg-config squashfs-tools cryptsetup curl git
+
+        curl -LO https://github.com/apptainer/apptainer/releases/download/v1.2.5/apptainer_1.2.5_amd64.deb
+        sudo dpkg -i apptainer_1.2.5_amd64.deb
+
+    - name: Build SIF from Dockerfile
+      run: |
+        apptainer build lotos-euros.sif Dockerfile
+
+    - name: Upload SIF Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: lotos-euros-sif
+        path: lotos-euros.sif
